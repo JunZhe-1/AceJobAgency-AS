@@ -1,0 +1,77 @@
+﻿@page
+@inject IHttpContextAccessor _context;
+@inject IDataProtectionProvider _dataProtectionProvider;
+@using Microsoft.AspNetCore.DataProtection
+@model AceJobAgency.Pages.user_detail4Model
+@{
+}
+<link rel="stylesheet" href="path/to/bootstrap-datepicker.css">
+<script src="path/to/bootstrap-datepicker.js"></script>
+<script src="path/to/bootstrap-datepicker.en.min.js"></script>
+<link rel="stylesheet" href="path/to/bootstrap.min.css">
+<link rel="stylesheet" href="path/to/zxcvbn.min.css">
+<script src="path/to/jquery.min.js"></script>
+<script src="path/to/bootstrap.min.js"></script>
+<script src="path/to/zxcvbn.min.js"></script>
+@{
+    // Retrieve the protected email from the session
+    var emailfromdatabase = _context.HttpContext.Session.GetString("User_Email");
+    var whoami = _context.HttpContext.Session.GetString("Who_Am_I");
+    var dateofbirth = _context.HttpContext.Session.GetString("Date_Of_Birth");
+    var firstname = _context.HttpContext.Session.GetString("First_Name");
+    var lastname = _context.HttpContext.Session.GetString("Last_Name");
+    var Nric = _context.HttpContext.Session.GetString("NRIC");
+
+
+    var get_whoami = "";
+    var get_dateofbirth = "";
+    var get_name = "";
+    var get_email = "";
+    var get_nric = "";
+    if (emailfromdatabase != null && Nric != null)
+    {
+
+        // Decrypt the protected email using the data protection provider
+        var IC_protector = _dataProtectionProvider.CreateProtector("NRIC");
+        var protector = _dataProtectionProvider.CreateProtector("EmailProtection");
+        get_email = protector.Unprotect(emailfromdatabase);
+        get_nric = IC_protector.Unprotect(Nric);
+
+    }
+    else
+    {
+        get_email = "";
+    }
+
+
+
+    if (whoami != null && dateofbirth != null && firstname != null && lastname != null)
+    {
+        get_whoami = whoami;
+        get_dateofbirth = dateofbirth;
+        get_name = firstname + ' ' + lastname;
+    }
+    else
+    {
+        get_whoami = "";
+        get_dateofbirth = "";
+        get_name = "";
+
+    }
+    Console.WriteLine($"Who Am I: {whoami}");
+    Console.WriteLine($"Date of Birth: {dateofbirth}");
+    Console.WriteLine($"First Name: {firstname}");
+    Console.WriteLine($"Last Name: {lastname}");
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p>User Email: @get_email</p>
+    <p>User Name: @get_email</p>
+    <p>User Date of Birth: @get_dateofbirth</p>
+    <p>User Who Am I: @Html.Raw(System.Web.HttpUtility.HtmlDecode(get_whoami))</p>
+    <p>NRIC: @get_nric</p>
+
+    <p>Student Id: @_context.HttpContext.Session.GetInt32("StudentId")</p>
+</div>
