@@ -140,9 +140,9 @@
                         onError.apply(form, arguments);
                         execInContext("errorPlacement", arguments);
                     },
-                    invalidHandler: function () {
+                    IncorrectHandler: function () {
                         onErrors.apply(form, arguments);
-                        execInContext("invalidHandler", arguments);
+                        execInContext("IncorrectHandler", arguments);
                     },
                     messages: {},
                     rules: {},

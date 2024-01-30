@@ -9,18 +9,18 @@ namespace WebApplication3.ViewModels
         public int UserId { get; set; }
 
         [Required(ErrorMessage = "First Name is required")]
-        [RegularExpression("^[^<>]+$", ErrorMessage = "Invalid characters. Please remove < and >.")]
+        [RegularExpression("^[^<>]+$", ErrorMessage = "Incorrect characters. Please remove < and >.")]
         public string First_Name { get; set; }
 
         [Required(ErrorMessage = "Last Name is required")]
-        [RegularExpression("^[^<>]+$", ErrorMessage = "Invalid characters. Please remove < and >.")]
+        [RegularExpression("^[^<>]+$", ErrorMessage = "Incorrect characters. Please remove < and >.")]
         public string Last_Name { get; set; }
 
         [Required(ErrorMessage = "Gender is required")]
         public string Gender { get; set; }
 
         [Required(ErrorMessage = "NRIC is required")]
-        [RegularExpression("^[TtSs]\\d{7}[A-Za-z]$", ErrorMessage = "Invalid NRIC format.")]
+        [RegularExpression("^[TtSs]\\d{7}[A-Za-z]$", ErrorMessage = "Incorrect NRIC format.")]
         public string NRIC { get; set; }
 
         [Required(ErrorMessage = "Email is required")]

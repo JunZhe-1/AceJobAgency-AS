@@ -33,7 +33,7 @@
 
         // Decrypt the protected email using the data protection provider
         var IC_protector = _dataProtectionProvider.CreateProtector("NRIC");
-        var protector = _dataProtectionProvider.CreateProtector("EmailProtection");
+        var protector = _dataProtectionProvider.CreateProtector("EmailAdressProtector");
         get_email = protector.Unprotect(emailfromdatabase);
         get_nric = IC_protector.Unprotect(Nric);
 

@@ -1,5 +1,5 @@
 ﻿@page
-@model WebApplication3.Pages.RegisterModel
+@model WebApplication3.Pages.RegisteRegisteringModel
 @{
 }
 @using System.Text.Json
@@ -25,46 +25,46 @@
                 <div asp-validation-summary="All" class="text-danger"></div>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.First_Name">First Name</label>
-                    <input type="Text" asp-for="RModel.First_Name" class="form-control" />
-                    <span asp-validation-for="RModel.First_Name" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.First_Name">First Name</label>
+                    <input type="Text" asp-for="RegisteringModel.First_Name" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.First_Name" class="text-danger"></span>
                    
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.Last_Name">Last Name</label>
-                    <input type="Text" asp-for="RModel.Last_Name" class="form-control" />
-                    <span asp-validation-for="RModel.Last_Name" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.Last_Name">Last Name</label>
+                    <input type="Text" asp-for="RegisteringModel.Last_Name" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.Last_Name" class="text-danger"></span>
                    
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Gender</label>
                     <div class="form-check">
-                        <input type="radio" asp-for="RModel.Gender" value="Male" class="form-check-input" />
+                        <input type="radio" asp-for="RegisteringModel.Gender" value="Male" class="form-check-input" />
                         <label class="form-check-label">Male</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" asp-for="RModel.Gender" value="Female" class="form-check-input" />
+                        <input type="radio" asp-for="RegisteringModel.Gender" value="Female" class="form-check-input" />
                         <label class="form-check-label">Female</label>
                     </div>
                     <div class="form-check">
-                        <input type="radio" asp-for="RModel.Gender" value="Other" class="form-check-input" />
+                        <input type="radio" asp-for="RegisteringModel.Gender" value="Other" class="form-check-input" />
                         <label class="form-check-label">Other</label>
                     </div>
-                    <span asp-validation-for="RModel.Gender" class="text-danger"></span>
+                    <span asp-validation-for="RegisteringModel.Gender" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.NRIC">NRIC</label>
-                    <input type="Text" asp-for="RModel.NRIC" class="form-control" />
-                    <span asp-validation-for="RModel.NRIC" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.NRIC">NRIC</label>
+                    <input type="Text" asp-for="RegisteringModel.NRIC" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.NRIC" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.DateOfBirth">Date of Birth</label>
-                    <input type="date" asp-for="RModel.DateOfBirth" class="form-control datepicker" autocomplete="off" />
-                    <span asp-validation-for="RModel.DateOfBirth" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.DateOfBirth">Date of Birth</label>
+                    <input type="date" asp-for="RegisteringModel.DateOfBirth" class="form-control datepicker" autocomplete="off" />
+                    <span asp-validation-for="RegisteringModel.DateOfBirth" class="text-danger"></span>
                 </div>
 
                 <section Scripts>
@@ -82,15 +82,15 @@
                 </section>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.Email">Email Address</label>
-                    <input type="Text" asp-for="RModel.Email" class="form-control" />
-                    <span asp-validation-for="RModel.Email" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.Email">Email Address</label>
+                    <input type="Text" asp-for="RegisteringModel.Email" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.Email" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.Password">Password</label>
-                    <input type="password" asp-for="RModel.Password" class="form-control" />
-                    <span asp-validation-for="RModel.Password" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.Password">Password</label>
+                    <input type="password" asp-for="RegisteringModel.Password" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.Password" class="text-danger"></span>
                     <div class="mt-2" id="passwordStrength"></div>
 
                 </div>
@@ -98,12 +98,12 @@
                     <script>
                         $(document).ready(function () {
                             function validateDOB() {
-                                var dobInput = $('input[name="RModel.DateOfBirth"]');
+                                var dobInput = $('input[name="RegisteringModel.DateOfBirth"]');
                                 var dobValue = dobInput.val();
 
                                 // Check if a valid date is entered
                                 if (!isValidDate(dobValue)) {
-                                    setValidationMessage(dobInput, "Invalid Date of Birth.");
+                                    setValidationMessage(dobInput, "Incorrect Date of Birth.");
                                     return false;
                                 }
 
@@ -133,7 +133,7 @@
                             }
 
                             // Hook up the validation on input change
-                            $('input[name="RModel.DateOfBirth"]').on('input', function () {
+                            $('input[name="RegisteringModel.DateOfBirth"]').on('input', function () {
                                 validateDOB();
                             });
 
@@ -141,8 +141,8 @@
                             $('form').submit(function () {
                                 return validateDOB();
                             });
-                            function checkPasswordStrength() {
-                                var password = $('input[name="RModel.Password"]').val();
+                            function checkPaswordSecurity() {
+                                var password = $('input[name="RegisteringModel.Password"]').val();
 
                                 // Update the password strength meter based on password criteria
                                 var points = 0;
@@ -184,20 +184,20 @@
                             }
 
                             // Update on page load
-                            checkPasswordStrength();
+                            checkPaswordSecurity();
 
                             // Update when the user is typing
-                            $('input[name="RModel.Password"]').on('input', function () {
-                                checkPasswordStrength();
+                            $('input[name="RegisteringModel.Password"]').on('input', function () {
+                                checkPaswordSecurity();
                             });
 
                             $('form').submit(function () {
-                                var maxFileSizeInBytes = 5 * 1024 * 1024; // 5 megabytes
+                                var maxSizeOfFileInBytes = 5 * 1024 * 1024; // 5 megabytes
 
-                                var fileInput = $('input[type="file"]');
-                                var fileSize = fileInput[0].files[0].size;
+                                var InputedFile = $('input[type="file"]');
+                                var SizeOfFile = InputedFile[0].files[0].size;
 
-                                if (fileSize > maxFileSizeInBytes) {
+                                if (SizeOfFile > maxSizeOfFileInBytes) {
                                     alert('File size exceeds the allowed limit.');
                                     return false; // Prevent form submission
                                 }
@@ -215,9 +215,9 @@
 
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.ConfirmPassword">Confirm Password</label>
-                    <input type="password" asp-for="RModel.ConfirmPassword" class="form-control" />
-                    <span asp-validation-for="RModel.ConfirmPassword" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.ConfirmPassword">Confirm Password</label>
+                    <input type="password" asp-for="RegisteringModel.ConfirmPassword" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.ConfirmPassword" class="text-danger"></span>
                 </div>
 
 
@@ -228,9 +228,9 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" asp-for="RModel.WhoAmI">WhoAmI</label>
-                    <input type="Text" asp-for="RModel.WhoAmI" class="form-control" />
-                    <span asp-validation-for="RModel.WhoAmI" class="text-danger"></span>
+                    <label class="form-label" asp-for="RegisteringModel.WhoAmI">WhoAmI</label>
+                    <input type="Text" asp-for="RegisteringModel.WhoAmI" class="form-control" />
+                    <span asp-validation-for="RegisteringModel.WhoAmI" class="text-danger"></span>
 
                 </div>
 

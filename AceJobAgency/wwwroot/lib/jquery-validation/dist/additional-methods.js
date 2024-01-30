@@ -643,7 +643,7 @@ $.validator.addMethod( "iban", function( value, element ) {
 	if ( typeof bbanpattern !== "undefined" ) {
 		ibanregexp = new RegExp( "^[A-Z]{2}\\d{2}" + bbanpattern + "$", "" );
 		if ( !( ibanregexp.test( iban ) ) ) {
-			return false; // Invalid country specific format
+			return false; // Incorrect country specific format
 		}
 	}
 
@@ -833,7 +833,7 @@ $.validator.addMethod( "pattern", function( value, element, param ) {
 		param = new RegExp( "^(?:" + param + ")$" );
 	}
 	return param.test( value );
-}, "Invalid format." );
+}, "Incorrect format." );
 
 /**
  * Dutch phone numbers have 10 digits (or 11 and start with +31).
@@ -1145,11 +1145,11 @@ $.validator.addMethod( "vinUS", function( v ) {
 		return true;
 	}
 	return false;
-}, "The specified vehicle identification number (VIN) is invalid." );
+}, "The specified vehicle identification number (VIN) is Incorrect." );
 
 $.validator.addMethod( "zipcodeUS", function( value, element ) {
 	return this.optional( element ) || /^\d{5}(-\d{4})?$/.test( value );
-}, "The specified US ZIP Code is invalid" );
+}, "The specified US ZIP Code is Incorrect" );
 
 $.validator.addMethod( "ziprange", function( value, element ) {
 	return this.optional( element ) || /^90[2-5]\d\{2\}-\d{4}$/.test( value );

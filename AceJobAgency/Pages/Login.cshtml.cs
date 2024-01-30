@@ -31,6 +31,8 @@ namespace AceJobAgency.Pages
         private UserManager<IdentityUser> userManager { get; }
         private SignInManager<IdentityUser> signInManager { get; }
         //private  DbSet<Register> Registers { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
 
         private readonly IDataProtectionProvider dataProtectionProvider;
 
@@ -39,9 +41,9 @@ namespace AceJobAgency.Pages
         private readonly ILogger<LoginModel> _logger;
 
         //[BindProperty]
-        //public Register RModel { get; set; }
+        //public Register RegisteringModel { get; set; }
         [BindProperty]
-        public Login LModel { get; set; }
+        public Login LogModel { get; set; }
 
 
         [BindProperty]
@@ -108,61 +110,73 @@ namespace AceJobAgency.Pages
 
 
             var RegexMail = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
-            if (LModel.Email != null)
+            if (LogModel.Email != null)
             {
-                if (!RegexMail.IsMatch(LModel.Email) || LModel.Email == null)
+                if (!RegexMail.IsMatch(LogModel.Email) || LogModel.Email == null)
                 {
-                    ModelState.AddModelError(nameof(LModel.Email), "Please enter a valid email address.");
+                    ModelState.AddModelError(nameof(LogModel.Email), "Please enter a valid email address.");
                     return Page();
                 }
             }
-            else if (LModel.Email == null)
+            else if (LogModel.Email == null)
             {
                 ModelState.AddModelError("", "Please enter your ID and password");
                 return Page();
             }
 
-            var emailProtector = dataProtectionProvider.CreateProtector("EmailProtection");
-            var hashedInputEmail = emailProtector.Protect(LModel.Email.ToLower());
 
 
-            var login_usr = await userManager.FindByEmailAsync(LModel.Email);
+            var login_usr = await userManager.FindByEmailAsync(LogModel.Email);
 
             if (login_usr != null)
             {
-                var allinregister = _context.Registers.ToList();
-                var registerData = allinregister.FirstOrDefault(u => DecryptEmail(u.Email) == login_usr.Email);
-                if (registerData != null)
+                var allUsers = _context.Registers.ToList(); // Fetch all users from the database
+                var user = allUsers.FirstOrDefault(u => DecryptEmail(u.Email) == login_usr.Email);
+                var protector = dataProtectionProvider.CreateProtector("EmailAdressProtector");
+
+
+                if (user != null)
                 {
-                    HttpContext.Session.SetString("Who_Am_I", registerData.WhoAmI);
-                    HttpContext.Session.SetString("Date_Of_Birth", registerData.DateOfBirth.ToString());
-                    HttpContext.Session.SetString("First_Name", registerData.First_Name);
-                    HttpContext.Session.SetString("Last_Name", registerData.Last_Name);
-                    HttpContext.Session.SetString("NRIC", registerData.NRIC);
+                    HttpContext.Session.SetString("WAI", user.WhoAmI);
+                    HttpContext.Session.SetString("DOB", user.DateOfBirth.ToString());
+                    HttpContext.Session.SetString("First_Name", user.First_Name);
+                    HttpContext.Session.SetString("Last_Name", user.Last_Name);
+                    HttpContext.Session.SetString("NRIC", user.NRIC);
+
                 }
                 else
                 {
-                    HttpContext.Session.SetString("Who_Am_I", "whoami");
-                    HttpContext.Session.SetString("Date_Of_Birth", "date");
+                    HttpContext.Session.SetString("WAI", "whoami");
+                    HttpContext.Session.SetString("DOB", "date");
                     HttpContext.Session.SetString("First_Name", "fn");
                     HttpContext.Session.SetString("Last_Name", "ln");
-                    HttpContext.Session.SetString("NRIC", "nr");
+                    HttpContext.Session.SetString("NRIC", "NRIC");
+
                 }
                 if (await userManager.IsLockedOutAsync(login_usr))
                 {
+                    var auditLog = new AuditLog
+                    {
+                        UserId = protector.Protect(login_usr.Email),
+                        Timestamp = DateTime.UtcNow,
+                        Action = "Account is locked but still trying"
+                    };
+
+                    _context.AuditLogs.Add(auditLog);
+                    await _context.SaveChangesAsync();
+
                     ModelState.AddModelError("", "Your Account is locked out. Please try again later.");
                     return Page();
                 }
 
-                if (LModel.Password != null)
+
+                if (LogModel.Password != null)
                 {
                     var hasher = new PasswordHasher<IdentityUser>();
-                    var passworderificationResult = hasher.VerifyHashedPassword(login_usr, login_usr.PasswordHash, LModel.Password);
+                    var passworderificationResult = hasher.VerifyHashedPassword(login_usr, login_usr.PasswordHash, LogModel.Password);
 
                     if (passworderificationResult == PasswordVerificationResult.Success)
                     {
-                        //  var result = await signInManager.PasswordSignInAsync(login_usr.Email, LModel.Password, false, false);
-                        var protector = dataProtectionProvider.CreateProtector("EmailProtection");
                         var email_protect = protector.Protect(login_usr.Email);
 
                         var session_timeout = 120; // 30 minutes
@@ -181,8 +195,8 @@ namespace AceJobAgency.Pages
 
                         // Check if there's an existing session identifier
                         var existingSessionId = HttpContext.Session.GetString("SessionId");
-                        _logger.LogInformation(existingSessionId);
                         var newSessionId = Guid.NewGuid().ToString();
+                        await signInManager.PasswordSignInAsync(login_usr.Email, LogModel.Password, false, false);
 
 
                         if (!string.IsNullOrEmpty(existingSessionId))
@@ -195,8 +209,6 @@ namespace AceJobAgency.Pages
 
                             HttpContext.Session.SetString("SessionId", newSessionId);
                             HttpContext.Session.SetString("User_Email", email_protect);
-                           
-
                             _logger.LogInformation($"Create a new session with SessionId: {newSessionId}");
                         }
                         else
@@ -207,7 +219,7 @@ namespace AceJobAgency.Pages
 
                             _logger.LogInformation($"Login successful with SessionId: {email_protect}");
                         }
-                        await LogAuditAsync("Login");
+                        await record();
                         return RedirectToPage("/user_detail4");
 
                     }
@@ -217,55 +229,78 @@ namespace AceJobAgency.Pages
 
                         if (await userManager.IsLockedOutAsync(login_usr))
                         {
+                            var auditLog1 = new AuditLog
+                            {
+                                UserId = protector.Protect(login_usr.Email),
+                                Timestamp = DateTime.UtcNow,
+                                Action = "Account is lock"
+                            };
+
+
+                            _context.AuditLogs.Add(auditLog1);
+                            await _context.SaveChangesAsync();
                             ModelState.AddModelError("", "Account is locked out. Please try again later.");
                             return Page();
                         }
-                        ModelState.AddModelError("", "ID or password is invalid");
+                        ModelState.AddModelError("", "ID or password is Incorrect");
+
+
+                        var auditLog = new AuditLog
+                        {
+                            UserId = protector.Protect(login_usr.Email),
+                            Timestamp = DateTime.UtcNow,
+                            Action = "Enter wrong password"
+                        };
+
+
+                        _context.AuditLogs.Add(auditLog);
+                        await _context.SaveChangesAsync();
 
                         _logger.LogInformation($"Wrong password");
-                        await LogAuditAsync("Failed to login");
                         return Page();
                     }
                 }
                 else
                 {
                     ModelState.AddModelError("", "Please Enter Password");
-                    await LogAuditAsync("Failed to login");
                     return Page();
                 }
 
             }
             else
             {
-                ModelState.AddModelError("", "ID or password is invalid");
+                ModelState.AddModelError("", "ID or password is Incorrect");
 
                 _logger.LogInformation($"User not found");
                 return Page();
 
             }
         }
-        private async Task LogAuditAsync(string action)
+
+
+        private string DecryptEmail(string encryptedEmail)
+        {
+            // Use the appropriate decryption logic here
+            var protector = dataProtectionProvider.CreateProtector("EmailAdressProtector");
+            return protector.Unprotect(encryptedEmail);
+        }
+
+
+
+
+        private async Task record()
         {
             // Log user activity to the database
             var auditLog = new AuditLog
             {
                 UserId = HttpContext.Session.GetString("User_Email"),
                 Timestamp = DateTime.UtcNow,
-                Action = action
+                Action = "login"
             };
 
             _context.AuditLogs.Add(auditLog);
             await _context.SaveChangesAsync();
         }
-
-
-        private string DecryptEmail(string encryptedEmail)
-        {
-            // Use the appropriate decryption logic here
-            var protector = dataProtectionProvider.CreateProtector("EmailProtection");
-            return protector.Unprotect(encryptedEmail);
-        }
-
 
 
 

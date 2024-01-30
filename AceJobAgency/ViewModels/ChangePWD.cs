@@ -10,7 +10,7 @@ namespace AceJobAgency.viewModels
 
         [Required]
         [DataType(DataType.Password)]
-        public string Current_Password { get; set; }
+        public string PasswordNow { get; set; }
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }

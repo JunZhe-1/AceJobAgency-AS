@@ -97,7 +97,7 @@ $.extend( $.fn, {
 					return true;
 				}
 
-				// Prevent submit for invalid forms or custom submit handlers
+				// Prevent submit for Incorrect forms or custom submit handlers
 				if ( validator.cancelSubmit ) {
 					validator.cancelSubmit = false;
 					return handle();
@@ -109,7 +109,7 @@ $.extend( $.fn, {
 					}
 					return handle();
 				} else {
-					validator.focusInvalid();
+					validator.focusIncorrect();
 					return false;
 				}
 			} );
@@ -278,7 +278,7 @@ $.extend( $.validator, {
 		validClass: "valid",
 		errorElement: "label",
 		focusCleanup: false,
-		focusInvalid: true,
+		focusIncorrect: true,
 		errorContainer: $( [] ),
 		errorLabelContainer: $( [] ),
 		onsubmit: true,
@@ -323,7 +323,7 @@ $.extend( $.validator, {
 
 			if ( event.which === 9 && this.elementValue( element ) === "" || $.inArray( event.keyCode, excludedKeys ) !== -1 ) {
 				return;
-			} else if ( element.name in this.submitted || element.name in this.invalid ) {
+			} else if ( element.name in this.submitted || element.name in this.Incorrect ) {
 				this.element( element );
 			}
 		},
@@ -390,7 +390,7 @@ $.extend( $.validator, {
 			this.valueCache = {};
 			this.pendingRequest = 0;
 			this.pending = {};
-			this.invalid = {};
+			this.Incorrect = {};
 			this.reset();
 
 			var groups = ( this.groups = {} ),
@@ -435,8 +435,8 @@ $.extend( $.validator, {
 				// "select" is provided as event.target when clicking a option
 				.on( "click.validate", "select, option, [type='radio'], [type='checkbox']", delegate );
 
-			if ( this.settings.invalidHandler ) {
-				$( this.currentForm ).on( "invalid-form.validate", this.settings.invalidHandler );
+			if ( this.settings.IncorrectHandler ) {
+				$( this.currentForm ).on( "Incorrect-form.validate", this.settings.IncorrectHandler );
 			}
 		},
 
@@ -444,9 +444,9 @@ $.extend( $.validator, {
 		form: function() {
 			this.checkForm();
 			$.extend( this.submitted, this.errorMap );
-			this.invalid = $.extend( {}, this.errorMap );
+			this.Incorrect = $.extend( {}, this.errorMap );
 			if ( !this.valid() ) {
-				$( this.currentForm ).triggerHandler( "invalid-form", [ this ] );
+				$( this.currentForm ).triggerHandler( "Incorrect-form", [ this ] );
 			}
 			this.showErrors();
 			return this.valid();
@@ -469,7 +469,7 @@ $.extend( $.validator, {
 				rs, group;
 
 			if ( checkElement === undefined ) {
-				delete this.invalid[ cleanElement.name ];
+				delete this.Incorrect[ cleanElement.name ];
 			} else {
 				this.prepareElement( checkElement );
 				this.currentElements = $( checkElement );
@@ -481,7 +481,7 @@ $.extend( $.validator, {
 					$.each( this.groups, function( name, testgroup ) {
 						if ( testgroup === group && name !== checkElement.name ) {
 							cleanElement = v.validationTargetFor( v.clean( v.findByName( name ) ) );
-							if ( cleanElement && cleanElement.name in v.invalid ) {
+							if ( cleanElement && cleanElement.name in v.Incorrect ) {
 								v.currentElements.push( cleanElement );
 								result = v.check( cleanElement ) && result;
 							}
@@ -492,20 +492,20 @@ $.extend( $.validator, {
 				rs = this.check( checkElement ) !== false;
 				result = result && rs;
 				if ( rs ) {
-					this.invalid[ checkElement.name ] = false;
+					this.Incorrect[ checkElement.name ] = false;
 				} else {
-					this.invalid[ checkElement.name ] = true;
+					this.Incorrect[ checkElement.name ] = true;
 				}
 
-				if ( !this.numberOfInvalids() ) {
+				if ( !this.numberOfIncorrects() ) {
 
 					// Hide error containers on last error
 					this.toHide = this.toHide.add( this.containers );
 				}
 				this.showErrors();
 
-				// Add aria-invalid status for screen readers
-				$( element ).attr( "aria-invalid", !rs );
+				// Add aria-Incorrect status for screen readers
+				$( element ).attr( "aria-Incorrect", !rs );
 			}
 
 			return result;
@@ -542,13 +542,13 @@ $.extend( $.validator, {
 			if ( $.fn.resetForm ) {
 				$( this.currentForm ).resetForm();
 			}
-			this.invalid = {};
+			this.Incorrect = {};
 			this.submitted = {};
 			this.prepareForm();
 			this.hideErrors();
 			var elements = this.elements()
 				.removeData( "previousValue" )
-				.removeAttr( "aria-invalid" );
+				.removeAttr( "aria-Incorrect" );
 
 			this.resetElements( elements );
 		},
@@ -569,8 +569,8 @@ $.extend( $.validator, {
 			}
 		},
 
-		numberOfInvalids: function() {
-			return this.objectLength( this.invalid );
+		numberOfIncorrects: function() {
+			return this.objectLength( this.Incorrect );
 		},
 
 		objectLength: function( obj ) {
@@ -580,7 +580,7 @@ $.extend( $.validator, {
 			for ( i in obj ) {
 
 				// This check allows counting elements with empty error
-				// message as invalid elements
+				// message as Incorrect elements
 				if ( obj[ i ] !== undefined && obj[ i ] !== null && obj[ i ] !== false ) {
 					count++;
 				}
@@ -605,8 +605,8 @@ $.extend( $.validator, {
 			return this.errorList.length;
 		},
 
-		focusInvalid: function() {
-			if ( this.settings.focusInvalid ) {
+		focusIncorrect: function() {
+			if ( this.settings.focusIncorrect ) {
 				try {
 					$( this.findLastActive() || this.errorList.length && this.errorList[ 0 ].element || [] )
 					.filter( ":visible" )
@@ -918,10 +918,10 @@ $.extend( $.validator, {
 		},
 
 		validElements: function() {
-			return this.currentElements.not( this.invalidElements() );
+			return this.currentElements.not( this.IncorrectElements() );
 		},
 
-		invalidElements: function() {
+		IncorrectElements: function() {
 			return $( this.errorList ).map( function() {
 				return this.element;
 			} );
@@ -1118,7 +1118,7 @@ $.extend( $.validator, {
 
 				this.formSubmitted = false;
 			} else if ( !valid && this.pendingRequest === 0 && this.formSubmitted ) {
-				$( this.currentForm ).triggerHandler( "invalid-form", [ this ] );
+				$( this.currentForm ).triggerHandler( "Incorrect-form", [ this ] );
 				this.formSubmitted = false;
 			}
 		},
@@ -1396,7 +1396,7 @@ $.extend( $.validator, {
 
 		// https://jqueryvalidation.org/date-method/
 		date: function( value, element ) {
-			return this.optional( element ) || !/Invalid|NaN/.test( new Date( value ).toString() );
+			return this.optional( element ) || !/Incorrect|NaN/.test( new Date( value ).toString() );
 		},
 
 		// https://jqueryvalidation.org/dateISO-method/
@@ -1543,13 +1543,13 @@ $.extend( $.validator, {
 						validator.toHide = validator.errorsFor( element );
 						validator.formSubmitted = submitted;
 						validator.successList.push( element );
-						validator.invalid[ element.name ] = false;
+						validator.Incorrect[ element.name ] = false;
 						validator.showErrors();
 					} else {
 						errors = {};
 						message = response || validator.defaultMessage( element, { method: method, parameters: value } );
 						errors[ element.name ] = previous.message = message;
-						validator.invalid[ element.name ] = true;
+						validator.Incorrect[ element.name ] = true;
 						validator.showErrors( errors );
 					}
 					previous.valid = valid;

@@ -26,9 +26,9 @@ namespace AceJobAgency.Pages
 
 
         //[BindProperty]
-        //public Register RModel { get; set; }
+        //public Register RegisteringModel { get; set; }
         [BindProperty]
-        public ChangePWD CModel { get; set; }
+        public ChangePWD ChangePasswordModel { get; set; }
 
 
         [BindProperty]
@@ -130,13 +130,13 @@ namespace AceJobAgency.Pages
 
 
 
-            if (CModel.Password != null && CModel.ConfirmPassword != null)
+            if (ChangePasswordModel.Password != null && ChangePasswordModel.ConfirmPassword != null)
             {
-                if (CModel.Password != null)
+                if (ChangePasswordModel.Password != null)
                 {
-                    if (!IsStrongPassword(CModel.Password))
+                    if (!IsStrongPassword(ChangePasswordModel.Password))
                     {
-                        ModelState.AddModelError(nameof(CModel.Password), "Password must be at least 12 characters long and include a combination of lower-case, upper-case, numbers, and special characters.");
+                        ModelState.AddModelError(nameof(ChangePasswordModel.Password), "Password must be at least 12 characters long and include a combination of lower-case, upper-case, numbers, and special characters.");
                         return Page();
                     }
                 }
@@ -144,14 +144,14 @@ namespace AceJobAgency.Pages
 
                 try
                 {
-                    var password_protector = dataProtectionProvider.CreateProtector("Password");
-                    var ProtectPassword = password_protector.Protect(CModel.Password);
+                    var password_protector = dataProtectionProvider.CreateProtector("PasswordProtector");
+                    var ProtectPassword = password_protector.Protect(ChangePasswordModel.Password);
 
                     var userEmail = DecryptEmail(_context.HttpContext.Session.GetString("User_Email"));
                     var login_usr = await userManager.FindByEmailAsync(userEmail);
                     _logger.LogInformation($"User {userEmail} is found");
                     // update password
-                    var changePasswordResult = await userManager.ChangePasswordAsync(login_usr, CModel.Current_Password, CModel.Password);
+                    var changePasswordResult = await userManager.ChangePasswordAsync(login_usr, ChangePasswordModel.PasswordNow, ChangePasswordModel.Password);
 
                     if (changePasswordResult.Succeeded)
                     {
@@ -184,7 +184,7 @@ namespace AceJobAgency.Pages
                     }
                     else if (!changePasswordResult.Succeeded)
                     {
-                        ModelState.AddModelError(nameof(CModel.Current_Password), "Your Current Password is Wrong");
+                        ModelState.AddModelError(nameof(ChangePasswordModel.PasswordNow), "Your Current Password is Wrong");
                         return Page();
                     }
                     else
@@ -220,7 +220,7 @@ namespace AceJobAgency.Pages
         private string DecryptEmail(string encryptedEmail)
         {
             // Use the appropriate decryption logic here
-            var protector = dataProtectionProvider.CreateProtector("EmailProtection");
+            var protector = dataProtectionProvider.CreateProtector("EmailAdressProtector");
             return protector.Unprotect(encryptedEmail);
         }
 
