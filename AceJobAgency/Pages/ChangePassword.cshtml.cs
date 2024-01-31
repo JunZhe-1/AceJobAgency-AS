@@ -9,7 +9,7 @@ using WebApplication3.ViewModels;
 
 namespace AceJobAgency.Pages
 {
-    public class ChangePWDModel : PageModel
+    public class ChangePasswordModel : PageModel
     {
 
         private UserManager<IdentityUser> userManager { get; }
@@ -20,7 +20,7 @@ namespace AceJobAgency.Pages
 
         private readonly IHttpContextAccessor _context;
 
-        private readonly ILogger<ChangePWDModel> _logger;
+        private readonly ILogger<ChangePasswordModel> _logger;
 
         private readonly AuthDbContext _dbcontext; // Add this field
 
@@ -28,7 +28,7 @@ namespace AceJobAgency.Pages
         //[BindProperty]
         //public Register RegisteringModel { get; set; }
         [BindProperty]
-        public ChangePWD ChangePasswordModel { get; set; }
+        public ChangePassword ChangePwdModel { get; set; }
 
 
         [BindProperty]
@@ -37,12 +37,12 @@ namespace AceJobAgency.Pages
         //private string userEmail = "";
 
 
-        public ChangePWDModel(
+        public ChangePasswordModel(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
         IDataProtectionProvider dataProtectionProvider,
          IHttpContextAccessor dbContext,
-         ILogger<ChangePWDModel> logger,
+         ILogger<ChangePasswordModel> logger,
          AuthDbContext _dbcontext)
         {
             this.userManager = userManager;
@@ -130,13 +130,13 @@ namespace AceJobAgency.Pages
 
 
 
-            if (ChangePasswordModel.Password != null && ChangePasswordModel.ConfirmPassword != null)
+            if (ChangePwdModel.Password != null && ChangePwdModel.ConfirmPassword != null)
             {
-                if (ChangePasswordModel.Password != null)
+                if (ChangePwdModel.Password != null)
                 {
-                    if (!IsStrongPassword(ChangePasswordModel.Password))
+                    if (!IsStrongPassword(ChangePwdModel.Password))
                     {
-                        ModelState.AddModelError(nameof(ChangePasswordModel.Password), "Password must be at least 12 characters long and include a combination of lower-case, upper-case, numbers, and special characters.");
+                        ModelState.AddModelError(nameof(ChangePwdModel.Password), "Password must be at least 12 characters long and include a combination of lower-case, upper-case, numbers, and special characters.");
                         return Page();
                     }
                 }
@@ -145,13 +145,13 @@ namespace AceJobAgency.Pages
                 try
                 {
                     var password_protector = dataProtectionProvider.CreateProtector("PasswordProtector");
-                    var ProtectPassword = password_protector.Protect(ChangePasswordModel.Password);
+                    var ProtectPassword = password_protector.Protect(ChangePwdModel.Password);
 
                     var userEmail = DecryptEmail(_context.HttpContext.Session.GetString("User_Email"));
                     var login_usr = await userManager.FindByEmailAsync(userEmail);
                     _logger.LogInformation($"User {userEmail} is found");
                     // update password
-                    var changePasswordResult = await userManager.ChangePasswordAsync(login_usr, ChangePasswordModel.PasswordNow, ChangePasswordModel.Password);
+                    var changePasswordResult = await userManager.ChangePasswordAsync(login_usr, ChangePwdModel.PasswordNow, ChangePwdModel.Password);
 
                     if (changePasswordResult.Succeeded)
                     {
@@ -180,11 +180,11 @@ namespace AceJobAgency.Pages
 
                         await _dbcontext.SaveChangesAsync();
 
-                        return RedirectToPage("/user_detail4");
+                        return RedirectToPage("/UserDetail");
                     }
                     else if (!changePasswordResult.Succeeded)
                     {
-                        ModelState.AddModelError(nameof(ChangePasswordModel.PasswordNow), "Your Current Password is Wrong");
+                        ModelState.AddModelError(nameof(ChangePwdModel.PasswordNow), "Your Current Password is Wrong");
                         return Page();
                     }
                     else

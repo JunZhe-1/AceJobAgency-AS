@@ -5,7 +5,7 @@ namespace AceJobAgency.viewModels
 {
     [Keyless]
 
-    public class ChangePWD
+    public class ChangePassword
     {
 
         [Required]

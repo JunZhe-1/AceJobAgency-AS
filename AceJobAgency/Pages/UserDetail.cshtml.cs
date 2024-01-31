@@ -19,14 +19,14 @@ using AceJobAgency.ViewModels;
 
 namespace AceJobAgency.Pages
 {
-    public class user_detail4Model : PageModel { 
+    public class UserDetailModel : PageModel { 
 
         private readonly IHttpContextAccessor _context;
-        private readonly ILogger<user_detail4Model> _logger;
+        private readonly ILogger<UserDetailModel> _logger;
 
-        public user_detail4Model(
+        public UserDetailModel(
            IHttpContextAccessor dbContext,
-           ILogger<user_detail4Model> logger)
+           ILogger<UserDetailModel> logger)
         {
             this._context = dbContext;
             this._logger = logger;

@@ -220,7 +220,7 @@ namespace AceJobAgency.Pages
                             _logger.LogInformation($"Login successful with SessionId: {email_protect}");
                         }
                         await record();
-                        return RedirectToPage("/user_detail4");
+                        return RedirectToPage("/UserDetail");
 
                     }
                     else

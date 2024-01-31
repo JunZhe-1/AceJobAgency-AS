@@ -210,7 +210,7 @@ namespace WebApplication3.Pages
                     if (result1 > 0 && result.Succeeded) // Check if any changes were saved
                     {
                         await signInManager.SignInAsync(user, false);
-                        return RedirectToPage("Index");
+                        return RedirectToPage("Login");
                     }
                     else
                     {
