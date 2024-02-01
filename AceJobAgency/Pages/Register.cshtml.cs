@@ -101,7 +101,7 @@ namespace WebApplication3.Pages
                 var IC_protector = dataProtectionProvider.CreateProtector("NRIC");
                 var ProtectNRIC = IC_protector.Protect(RegisteringModel.NRIC);
 
-
+                
                 var all_email = await _context.Registers.ToListAsync();
                 var existingUser = await userManager.Users.FirstOrDefaultAsync(u => u.Email == RegisteringModel.Email);
                 var existingUser_register_db = all_email.FirstOrDefault(u => DecryptEmail(u.Email).ToLower() == RegisteringModel.Email.ToLower());
@@ -210,6 +210,7 @@ namespace WebApplication3.Pages
                     if (result1 > 0 && result.Succeeded) // Check if any changes were saved
                     {
                         await signInManager.SignInAsync(user, false);
+                        await signInManager.SignOutAsync();
                         return RedirectToPage("Login");
                     }
                     else

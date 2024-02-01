@@ -34,8 +34,11 @@
         // Decrypt the protected email using the data protection provider
         var IC_protector = _dataProtectionProvider.CreateProtector("NRIC");
         var protector = _dataProtectionProvider.CreateProtector("EmailAdressProtector");
+
         get_email = protector.Unprotect(emailfromdatabase);
         get_nric = IC_protector.Unprotect(Nric);
+        get_dateofbirth = dateofbirth;
+        get_whoami = whoami;
 
     }
     else
@@ -49,6 +52,9 @@
     {
         get_whoami = whoami;
         get_dateofbirth = dateofbirth;
+        var Name_protector = _dataProtectionProvider.CreateProtector("Name");
+        firstname = Name_protector.Unprotect(firstname);
+        lastname = Name_protector.Unprotect(lastname);
         get_name = firstname + ' ' + lastname;
     }
     else
@@ -68,7 +74,7 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
     <p>User Email: @get_email</p>
-    <p>User Name: @get_email</p>
+    <p>User Name: @get_name</p>
     <p>User Date of Birth: @get_dateofbirth</p>
     <p>User Who Am I: @Html.Raw(System.Web.HttpUtility.HtmlDecode(get_whoami))</p>
     <p>NRIC: @get_nric</p>

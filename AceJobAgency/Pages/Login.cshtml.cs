@@ -36,7 +36,8 @@ namespace AceJobAgency.Pages
 
         private readonly IDataProtectionProvider dataProtectionProvider;
 
-        private readonly AuthDbContext _context; // Add this field
+        private readonly AuthDbContext _dbcontext; // Add this field
+        private readonly IHttpContextAccessor _context;
 
         private readonly ILogger<LoginModel> _logger;
 
@@ -58,14 +59,15 @@ namespace AceJobAgency.Pages
           SignInManager<IdentityUser> signInManager,
           IDataProtectionProvider dataProtectionProvider,
            AuthDbContext dbContext,
-           ILogger<LoginModel> logger)
+           ILogger<LoginModel> logger,
+           IHttpContextAccessor icontext)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.dataProtectionProvider = dataProtectionProvider;
-            this._context = dbContext;
+            this._dbcontext = dbContext;
             this._logger = logger;
-
+            this._context = icontext;
         }
 
         public void OnGet()
@@ -89,7 +91,7 @@ namespace AceJobAgency.Pages
                     {
                     new KeyValuePair<string, string>("secret", recaptcha_SecretKey),
                     new KeyValuePair<string, string>("response", RecaptchaResponse),
-                    new KeyValuePair<string, string>("remoteip", HttpContext.Connection.RemoteIpAddress.ToString())
+                    new KeyValuePair<string, string>("remoteip", _context.HttpContext.Connection.RemoteIpAddress.ToString())
                 }));
 
 
@@ -130,27 +132,27 @@ namespace AceJobAgency.Pages
 
             if (login_usr != null)
             {
-                var allUsers = _context.Registers.ToList(); // Fetch all users from the database
+                var allUsers = _dbcontext.Registers.ToList(); // Fetch all users from the database
                 var user = allUsers.FirstOrDefault(u => DecryptEmail(u.Email) == login_usr.Email);
                 var protector = dataProtectionProvider.CreateProtector("EmailAdressProtector");
 
 
                 if (user != null)
                 {
-                    HttpContext.Session.SetString("WAI", user.WhoAmI);
-                    HttpContext.Session.SetString("DOB", user.DateOfBirth.ToString());
-                    HttpContext.Session.SetString("First_Name", user.First_Name);
-                    HttpContext.Session.SetString("Last_Name", user.Last_Name);
-                    HttpContext.Session.SetString("NRIC", user.NRIC);
+                    _context.HttpContext.Session.SetString("Who_Am_I", user.WhoAmI);
+                    _context.HttpContext.Session.SetString("Date_Of_Birth", user.DateOfBirth.ToString());
+                    _context.HttpContext.Session.SetString("First_Name", user.First_Name);
+                    _context.HttpContext.Session.SetString("Last_Name", user.Last_Name);
+                    _context.HttpContext.Session.SetString("NRIC", user.NRIC);
 
                 }
                 else
                 {
-                    HttpContext.Session.SetString("WAI", "whoami");
-                    HttpContext.Session.SetString("DOB", "date");
-                    HttpContext.Session.SetString("First_Name", "fn");
-                    HttpContext.Session.SetString("Last_Name", "ln");
-                    HttpContext.Session.SetString("NRIC", "NRIC");
+                    _context.HttpContext.Session.SetString("Who_Am_I", "whoami");
+                    _context.HttpContext.Session.SetString("Date_Of_Birth", "date");
+                    _context.HttpContext.Session.SetString("First_Name", "fn");
+                    _context.HttpContext.Session.SetString("Last_Name", "ln");
+                    _context.HttpContext.Session.SetString("NRIC", "NRIC");
 
                 }
                 if (await userManager.IsLockedOutAsync(login_usr))
@@ -162,8 +164,8 @@ namespace AceJobAgency.Pages
                         Action = "Account is locked but still trying"
                     };
 
-                    _context.AuditLogs.Add(auditLog);
-                    await _context.SaveChangesAsync();
+                    _dbcontext.AuditLogs.Add(auditLog);
+                    await _dbcontext.SaveChangesAsync();
 
                     ModelState.AddModelError("", "Your Account is locked out. Please try again later.");
                     return Page();
@@ -180,44 +182,63 @@ namespace AceJobAgency.Pages
                         var email_protect = protector.Protect(login_usr.Email);
 
                         var session_timeout = 120; // 30 minutes
-                        HttpContext.Session.SetInt32("UserSessionTimeout", session_timeout);
+                        _context.HttpContext.Session.SetInt32("UserSessionTimeout", session_timeout);
 
-                        //var session_id = HttpContext.Session.GetString("User_Email");
+                        //var session_id = _context.HttpContext.Session.GetString("User_Email");
 
                         //if (session_id != null && string.Equals(DecryptEmail(session_id.ToString()), login_usr.Email, StringComparison.OrdinalIgnoreCase))
                         //{
                         //    await signInManager.SignOutAsync();
-                        //    HttpContext.Session.Remove(session_id);
+                        //    _context.HttpContext.Session.Remove(session_id);
                         //    TempData["SessionTerminated"] = true;
 
                         //    _logger.LogInformation($"Terminating previous session for email: {session_id} and {login_usr.Email}");
                         //}
 
                         // Check if there's an existing session identifier
-                        var existingSessionId = HttpContext.Session.GetString("SessionId");
+                        var existingSessionId = _context.HttpContext.Session.GetString("SessionId");
                         var newSessionId = Guid.NewGuid().ToString();
                         await signInManager.PasswordSignInAsync(login_usr.Email, LogModel.Password, false, false);
-
+                        _logger.LogInformation("uirfheifuherf", existingSessionId);
 
                         if (!string.IsNullOrEmpty(existingSessionId))
                         {
-                            HttpContext.Session.Clear();
-                            await signInManager.SignOutAsync();
+                            _context.HttpContext.Session.Clear();
                             TempData["SessionTerminated"] = true;
-                            _logger.LogInformation($"Terminating old session -  SessionId: {existingSessionId}");
+                            _logger.LogInformation($"Stop past session -  SessionId: {existingSessionId}");
+                            if (user != null)
+                            {
+                                _context.HttpContext.Session.SetInt32("UserSessionTimeout", session_timeout);
+
+                                _context.HttpContext.Session.SetString("Who_Am_I", user.WhoAmI);
+                                _context.HttpContext.Session.SetString("Date_Of_Birth", user.DateOfBirth.ToString());
+                                _context.HttpContext.Session.SetString("First_Name", user.First_Name);
+                                _context.HttpContext.Session.SetString("Last_Name", user.Last_Name);
+                                _context.HttpContext.Session.SetString("NRIC", user.NRIC);
+
+                            }
+                            else
+                            {
+                                _context.HttpContext.Session.SetString("Who_Am_I", "whoami");
+                                _context.HttpContext.Session.SetString("Date_Of_Birth", "date");
+                                _context.HttpContext.Session.SetString("First_Name", "fn");
+                                _context.HttpContext.Session.SetString("Last_Name", "ln");
+                                _context.HttpContext.Session.SetString("NRIC", "NRIC");
+
+                            }
 
 
-                            HttpContext.Session.SetString("SessionId", newSessionId);
-                            HttpContext.Session.SetString("User_Email", email_protect);
-                            _logger.LogInformation($"Create a new session with SessionId: {newSessionId}");
+                            _context.HttpContext.Session.SetString("SessionId", newSessionId);
+                            _context.HttpContext.Session.SetString("User_Email", email_protect);
+                            _logger.LogInformation($"Generate a new session with Session id: {newSessionId}");
                         }
                         else
                         {
-                            HttpContext.Session.SetString("SessionId", newSessionId);
+                            _context.HttpContext.Session.SetString("SessionId", newSessionId);
                             TempData["SessionTerminated"] = false;
-                            HttpContext.Session.SetString("User_Email", email_protect);
+                            _context.HttpContext.Session.SetString("User_Email", email_protect);
 
-                            _logger.LogInformation($"Login successful with SessionId: {email_protect}");
+                            _logger.LogInformation($"Login successful with id: {email_protect}");
                         }
                         await record();
                         return RedirectToPage("/UserDetail");
@@ -237,8 +258,8 @@ namespace AceJobAgency.Pages
                             };
 
 
-                            _context.AuditLogs.Add(auditLog1);
-                            await _context.SaveChangesAsync();
+                            _dbcontext.AuditLogs.Add(auditLog1);
+                            await _dbcontext.SaveChangesAsync();
                             ModelState.AddModelError("", "Account is locked out. Please try again later.");
                             return Page();
                         }
@@ -253,10 +274,10 @@ namespace AceJobAgency.Pages
                         };
 
 
-                        _context.AuditLogs.Add(auditLog);
-                        await _context.SaveChangesAsync();
+                        _dbcontext.AuditLogs.Add(auditLog);
+                        await _dbcontext.SaveChangesAsync();
 
-                        _logger.LogInformation($"Wrong password");
+                        _logger.LogInformation($"Incorrect password");
                         return Page();
                     }
                 }
@@ -271,7 +292,7 @@ namespace AceJobAgency.Pages
             {
                 ModelState.AddModelError("", "ID or password is Incorrect");
 
-                _logger.LogInformation($"User not found");
+                _logger.LogInformation($"Unknown user");
                 return Page();
 
             }
@@ -293,13 +314,13 @@ namespace AceJobAgency.Pages
             // Log user activity to the database
             var auditLog = new AuditLog
             {
-                UserId = HttpContext.Session.GetString("User_Email"),
+                UserId = _context.HttpContext.Session.GetString("User_Email"),
                 Timestamp = DateTime.UtcNow,
                 Action = "login"
             };
 
-            _context.AuditLogs.Add(auditLog);
-            await _context.SaveChangesAsync();
+            _dbcontext.AuditLogs.Add(auditLog);
+            await _dbcontext.SaveChangesAsync();
         }
 
 

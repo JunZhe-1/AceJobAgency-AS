@@ -23,23 +23,29 @@ namespace AceJobAgency.Pages
 
         private readonly IHttpContextAccessor _context;
         private readonly ILogger<UserDetailModel> _logger;
+        private SignInManager<IdentityUser> signInManager { get; }
 
         public UserDetailModel(
            IHttpContextAccessor dbContext,
-           ILogger<UserDetailModel> logger)
+           ILogger<UserDetailModel> logger,
+           SignInManager<IdentityUser> signInManager)
         {
             this._context = dbContext;
             this._logger = logger;
+            this.signInManager = signInManager;
+
 
         }
 
 
-        public IActionResult Onget()
+        public async Task<IActionResult> Onget()
         {
+            _logger.LogInformation("this is user session id", _context.HttpContext.Session.GetString("SessionId"));
 
             if (_context.HttpContext.Session.GetString("SessionId") == null)
             {
-                _logger.LogInformation("Cannot found any session ID in your session ");
+                _logger.LogInformation("Your session has no session id ");
+                await signInManager.SignOutAsync();
                 return RedirectToPage("Login");
 
             }
@@ -53,7 +59,8 @@ namespace AceJobAgency.Pages
             //}
 
             var sessionTimeoutSeconds = _context.HttpContext.Session.GetInt32("UserSessionTimeout");
-            _logger.LogInformation($"time: {sessionTimeoutSeconds}");
+            _logger.LogInformation($"Time remainning: {sessionTimeoutSeconds}");
+
 
             var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
             var lastActivityTime = _context.HttpContext.Session.GetInt32("LastActivityTime") ?? currentTime;
@@ -66,7 +73,9 @@ namespace AceJobAgency.Pages
                 {
                     _context.HttpContext.Session.Remove(key);
                 }
-                _logger.LogInformation($"Your Session is already time out");
+                await signInManager.SignOutAsync();
+
+                _logger.LogInformation($"Your Session has expired");
 
                 return RedirectToPage("Login");
             }

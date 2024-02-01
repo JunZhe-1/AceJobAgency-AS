@@ -55,18 +55,18 @@ namespace AceJobAgency.Pages
 
 
 
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGet()
         {
             if (_context.HttpContext.Session.GetString("SessionId") == null)
             {
-                _logger.LogInformation("Cannot found any session ID in your session ");
+                _logger.LogInformation("Your session has no session id ");
                 return RedirectToPage("Login");
 
             }
 
 
             var sessionTimeoutSeconds = _context.HttpContext.Session.GetInt32("UserSessionTimeout");
-            _logger.LogInformation($"time: {sessionTimeoutSeconds}");
+            _logger.LogInformation($"Time remainning: {sessionTimeoutSeconds}");
 
             var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
             var lastActivityTime = _context.HttpContext.Session.GetInt32("LastActivityTime") ?? currentTime;
@@ -80,8 +80,8 @@ namespace AceJobAgency.Pages
                 {
                     _context.HttpContext.Session.Remove(key);
                 }
-                _logger.LogInformation($"Your Session is already time out");
-
+                _logger.LogInformation($"Your session is expired");
+                await signInManager.SignOutAsync();
                 return RedirectToPage("Login");
             }
             else
@@ -149,17 +149,17 @@ namespace AceJobAgency.Pages
 
                     var userEmail = DecryptEmail(_context.HttpContext.Session.GetString("User_Email"));
                     var login_usr = await userManager.FindByEmailAsync(userEmail);
-                    _logger.LogInformation($"User {userEmail} is found");
+                    _logger.LogInformation($"User {userEmail} is correct");
                     // update password
                     var changePasswordResult = await userManager.ChangePasswordAsync(login_usr, ChangePwdModel.PasswordNow, ChangePwdModel.Password);
 
                     if (changePasswordResult.Succeeded)
                     {
-                        _logger.LogInformation($"Enter statement");
+                        _logger.LogInformation($"");
 
                         if (string.IsNullOrEmpty(userEmail))
                         {
-                            _logger.LogInformation($"User email is null or empty. Password update unsuccessful.");
+                            _logger.LogInformation($" Password update failed due to incorrect or not exist email address");
                             return RedirectToPage("/Error");
                         }
                         var allUsers = _dbcontext.Registers.ToList(); // Fetch all users from the database
@@ -168,13 +168,13 @@ namespace AceJobAgency.Pages
 
                         if (user == null)
                         {
-                            _logger.LogInformation($"{userEmail} password update unsecessfully");
+                            _logger.LogInformation($"{userEmail} Password update failed");
                             return NotFound();  
 
                         }
 
 
-                        _logger.LogInformation($"{userEmail} password update seccesfully");
+                        _logger.LogInformation($"{userEmail} Password update seccesfully");
                         user.Password = ProtectPassword;
                         user.ConfirmPassword = ProtectPassword;
 
@@ -184,7 +184,7 @@ namespace AceJobAgency.Pages
                     }
                     else if (!changePasswordResult.Succeeded)
                     {
-                        ModelState.AddModelError(nameof(ChangePwdModel.PasswordNow), "Your Current Password is Wrong");
+                        ModelState.AddModelError(nameof(ChangePwdModel.PasswordNow), "Your Current Password is incorrect");
                         return Page();
                     }
                     else
@@ -203,7 +203,7 @@ namespace AceJobAgency.Pages
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogInformation($"error in 208 lines");
+                    _logger.LogInformation($"error dont know how many");
                     return NotFound();
 
                 }
